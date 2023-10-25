@@ -5,7 +5,7 @@
 const jsonschema = require("jsonschema");
 const express = require("express");
 
-const { BadRequestError } = require("../expressError");
+const { BadRequestError, NotFoundError, UnauthorizedError } = require("../expressError");
 const { ensureLoggedIn } = require("../middleware/auth");
 const Company = require("../models/company");
 
@@ -50,16 +50,32 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
  * Authorization required: none
  */
 
-router.get("/", async function (req, res, next) {
-  console.log(req.query);
-  console.log(req.query.minEmployees);
-  const filterCriteria = Object.keys(req.query); //[minEmployee]
-  console.log("filter criteria:", filterCriteria);
+router.get("/", async function (req, res) {
 
-  const filterValue = req.query[filterCriteria];
-  console.log("filterValue:", filterValue);
+  const filterCriteria = req.query || {};
 
-  const companies = await Company.findAll(filterCriteria, filterValue);
+  if (Object.keys(filterCriteria) > 0) {
+    const allowedFilters = ['minEmployees', 'maxEmployees', 'nameLike'];
+
+    for (const filter in filterCriteria) {
+      if (!allowedFilters.includes(filter)) {
+        throw new BadRequestError(
+          `${filter} is not an available filter. Choose from minEmployees, maxEmployees, nameLike`);
+      }
+    }
+
+    if (filterCriteria.minEmployees > filterCriteria.maxEmployees) {
+      throw new BadRequestError('minEmployees cannot exceed maxEmployees');
+    }
+  }
+
+  const companies = await Company.findAll(filterCriteria);
+  console.log('COMPANIES????', companies)
+
+  if (companies.rows.length === 0) {
+    throw new NotFoundError('No companies were found matching those filters');
+  }
+
   return res.json({ companies });
 });
 

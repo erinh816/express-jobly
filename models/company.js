@@ -50,17 +50,37 @@ class Company {
     return company;
   }
 
-  /** Find all companies.
+  /** Takes in filterCriteria, which can be empty
+   * Finds all companies matching filterCriteria,
+   * Or all companies if filterCriteria is empty
    *
    * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
    * */
 
-  static async findAll(filterCriteria, filterValue) {
-    //{minEmployees:32}
-    console.log("Model, filterC", filterCriteria);
-    console.log("Model, filterV", filterValue);
+  static async findAll(filterCriteria) {
 
-    if (filterCriteria.includes('minEmployees')) {
+    const criterias = [];
+
+    if (Object.keys(filterCriteria) > 0) {
+      for (const criteria in filterCriteria) {
+        console.log(criteria);
+        if (criteria === 'minEmployees') {
+          criterias.push('num_employees > ' + filterCriteria[criteria]);
+        }
+        else if (criteria === 'maxEmployees') {
+          criterias.push('num_employees < ' + filterCriteria[criteria]);
+        }
+        else if (criteria === 'nameLike') {
+          criterias.push(`name ILIKE '%${filterCriteria[criteria]}%'`);
+        }
+      }
+    }
+
+    let whereClause = `WHERE ` + criterias.join(' AND ') + '\n';
+
+    console.log('WHERE CLAUSE?', whereClause);
+
+    if (criterias.length > 0) {
       const companiesRes = await db.query(`
         SELECT handle,
                name,
@@ -68,13 +88,11 @@ class Company {
                num_employees AS "numEmployees",
                logo_url      AS "logoUrl"
         FROM companies
-        WHERE num_employees > ${filterValue}
+        ${whereClause}
         ORDER BY name`);
-      console.log(companiesRes);
 
       return companiesRes.rows;
     }
-    // return companiesRes.rows;
   }
 
   /** Given a company handle, return data about company.
