@@ -53,8 +53,9 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
 router.get("/", async function (req, res) {
 
   const filterCriteria = req.query || {};
+  // console.log("check if {} can be passed in", filterCriteria);
 
-  if (Object.keys(filterCriteria) > 0) {
+  if (Object.keys(filterCriteria).length > 0) {
     const allowedFilters = ['minEmployees', 'maxEmployees', 'nameLike'];
 
     for (const filter in filterCriteria) {
@@ -70,9 +71,8 @@ router.get("/", async function (req, res) {
   }
 
   const companies = await Company.findAll(filterCriteria);
-  console.log('COMPANIES????', companies)
 
-  if (companies.rows.length === 0) {
+  if (companies.length === 0) {
     throw new NotFoundError('No companies were found matching those filters');
   }
 

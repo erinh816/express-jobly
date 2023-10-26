@@ -57,11 +57,13 @@ class Company {
    * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
    * */
 
+  //TODO:refactor, 66 - 82 move to a helper function, add sql injection stuff
   static async findAll(filterCriteria) {
 
     const criterias = [];
+    let whereClause;
 
-    if (Object.keys(filterCriteria) > 0) {
+    if (Object.keys(filterCriteria).length > 0) {
       for (const criteria in filterCriteria) {
         console.log(criteria);
         if (criteria === 'minEmployees') {
@@ -76,23 +78,21 @@ class Company {
       }
     }
 
-    let whereClause = `WHERE ` + criterias.join(' AND ') + '\n';
+    // console.log('model criterias array', criterias);
+    whereClause = criterias.length > 0 ? `WHERE ${criterias.join(' AND ')}` : '';
 
-    console.log('WHERE CLAUSE?', whereClause);
+    // console.log('WHERE CLAUSE?', whereClause);
+    const companiesRes = await db.query(`
+    SELECT handle,
+           name,
+           description,
+           num_employees AS "numEmployees",
+           logo_url      AS "logoUrl"
+    FROM companies
+    ${whereClause}
+    ORDER BY name`);
 
-    if (criterias.length > 0) {
-      const companiesRes = await db.query(`
-        SELECT handle,
-               name,
-               description,
-               num_employees AS "numEmployees",
-               logo_url      AS "logoUrl"
-        FROM companies
-        ${whereClause}
-        ORDER BY name`);
-
-      return companiesRes.rows;
-    }
+    return companiesRes.rows;
   }
 
   /** Given a company handle, return data about company.
