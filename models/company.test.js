@@ -85,6 +85,50 @@ describe("findAll", function () {
       },
     ]);
   });
+
+  test("works: with filter", async function () {
+
+    let companies = await Company.findAll(
+      { minEmployees: '3' }
+    );
+    expect(companies).toEqual([
+      {
+        handle: "c3",
+        name: "C3",
+        description: "Desc3",
+        numEmployees: 3,
+        logoUrl: "http://c3.img",
+      }
+    ]);
+  });
+
+  test("works: with multiple filters", async function () {
+    let companies = await Company.findAll(
+      { minEmployees: '1', maxEmployees: '2' }
+    );
+    expect(companies).toEqual([{
+      handle: "c1",
+      name: "C1",
+      description: "Desc1",
+      numEmployees: 1,
+      logoUrl: "http://c1.img",
+    },
+    {
+      handle: "c2",
+      name: "C2",
+      description: "Desc2",
+      numEmployees: 2,
+      logoUrl: "http://c2.img",
+    },
+    ]);
+  });
+
+  test("works: handles no matching results", async function () {
+    let companies = await Company.findAll(
+      { minEmployees: '900' }
+    );
+    expect(companies).toEqual("No companies were found matching those filters");
+  });
 });
 
 /************************************** get */

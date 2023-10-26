@@ -91,23 +91,24 @@ class Company {
    *  values: [333, '%Bauer%']}
    */
   static companySqlFilter(filterCriteria) {
+    console.log('filterCriteria', filterCriteria);
     const criterias = [];
     const values = [];
     const filters = [];
     let whereClause;
 
-    if (Object.keys(filterCriteria).length > 0) {
+    if (filterCriteria !== null && Object.keys(filterCriteria).length > 0) {
       for (const criteria in filterCriteria) {
 
         if (criteria === 'minEmployees') {
           criterias.push('num_employees > ' + filterCriteria[criteria]);
           values.push(parseInt(filterCriteria[criteria]));
-          filters.push('num_employees' + ' >');
+          filters.push('num_employees' + ' >=');
         }
         else if (criteria === 'maxEmployees') {
           criterias.push('num_employees < ' + filterCriteria[criteria]);
           values.push(parseInt(filterCriteria[criteria]));
-          filters.push('num_employees' + ' <');
+          filters.push('num_employees' + ' <=');
         }
         else if (criteria === 'nameLike') {
           criterias.push(`name ILIKE '%${filterCriteria[criteria]}%'`);
