@@ -4,17 +4,15 @@
 "type": "object",
 "properties": {
   "minEmployees": {
-    "type": "string",
-    "maxLength": 12
+    "type": "integer"
 
   },
   "maxEmployees": {
-    "type": "string",
-    "maxLength": 12
+    "type": "integer"
   },
   "nameLike": {
     "type": "string",
-    "maxLength": 100
+    "maxLength": 70
   }
 },
 "additionalProperties": false,

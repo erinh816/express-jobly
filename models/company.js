@@ -51,17 +51,17 @@ class Company {
   }
 
 
-  /** Takes in filterCriteria, which can be empty
+  /** Takes in filterCriteria object or undefined,
+   * //TODO: specify criteria
    * Finds all companies matching filterCriteria,
    * Or all companies if filterCriteria is empty
    *
    * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
    * */
 
-  static async findAll(filterCriteria) {
+  static async findAll(filterCriteria={}) {
 
     const { whereClause, values } = Company.companySqlFilter(filterCriteria);
-    //console.log("WHERE", whereClause, 'VALUES', values);
 
     const companiesRes = await db.query(`
     SELECT handle,
@@ -72,16 +72,14 @@ class Company {
     FROM companies
     ${whereClause}
     ORDER BY name`, [...values]);
-
-    if (companiesRes.rows.length === 0) {
-      return "No companies were found matching those filters";
-    }
+    // values is already an array...
 
     return companiesRes.rows;
   }
 
 
   /**
+   * // TODO: specify allowable criteria
    * Takes in an object filterCriteria with data from req.query
    * {'minEmployees': '333', 'nameLike': 'Bauer'}
    *
@@ -90,42 +88,41 @@ class Company {
    * {whereClause: 'WHERE num_employees > $1 AND name ILIKE $2',
    *  values: [333, '%Bauer%']}
    */
+  // TODO: name like _findAllSqlFilter
   static companySqlFilter(filterCriteria) {
-    console.log('filterCriteria', filterCriteria);
-    const criterias = [];
+
+    //const criterias = [];
     const values = [];
     const filters = [];
     let whereClause;
-
-    if (filterCriteria !== null && Object.keys(filterCriteria).length > 0) {
+    // TODO: criterias is not doing anything anymore
+    if (Object.keys(filterCriteria).length > 0) {
       for (const criteria in filterCriteria) {
 
         if (criteria === 'minEmployees') {
-          criterias.push('num_employees > ' + filterCriteria[criteria]);
-          values.push(parseInt(filterCriteria[criteria]));
-          filters.push('num_employees' + ' >=');
+          //criterias.push('num_employees > ' + filterCriteria[criteria]);
+          values.push(filterCriteria[criteria]);
+          filters.push('num_employees' + ' >=' + `$${values.length}`);
         }
         else if (criteria === 'maxEmployees') {
-          criterias.push('num_employees < ' + filterCriteria[criteria]);
-          values.push(parseInt(filterCriteria[criteria]));
-          filters.push('num_employees' + ' <=');
+         // criterias.push('num_employees < ' + filterCriteria[criteria]);
+          values.push(filterCriteria[criteria]);
+          filters.push('num_employees' + ' <=' + `$${values.length}`);
         }
+        // TODO: test this
         else if (criteria === 'nameLike') {
-          criterias.push(`name ILIKE '%${filterCriteria[criteria]}%'`);
+          //criterias.push(`name ILIKE '%${filterCriteria[criteria]}%'`);
           values.push("%" + filterCriteria[criteria] + "%");
-          filters.push('name ILIKE ');
+          filters.push('name ILIKE ' + `$${values.length}`);
         }
       }
     }
-    // console.log(values);
-    // console.log('model criterias array', criterias);
-    // whereClause = criterias.length > 0 ? `WHERE ${criterias.join(' AND ')}` : '';
-    const placeholders = filters.map((filter, idx) =>
-      `${filter} $${idx + 1}`,
-    );
-    // console.log('filters,', filterWithPlaceholder);
+    //can eliminate this
+    // const placeholders = filters.map((filter, idx) =>
+    //   `${filter} $${idx + 1}`,
+    // );
 
-    whereClause = placeholders.length > 0 ? `WHERE ${placeholders.join(' AND ')}` : '';
+    whereClause = filters.length > 0 ? `WHERE ${filters.join(' AND ')}` : '';
 
     return { whereClause, values };
 

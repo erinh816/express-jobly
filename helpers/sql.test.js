@@ -21,6 +21,9 @@ describe("testing sqlForPartialUpdate", function () {
 
   test("test error if no dataToUpdate keys", function () {
     // why does this need to wrapped in another function?
+    // that's just how it works
+    //expect(sqlForPartialUpdate({},{})).toThrow(BadRequestError)
+    // this throws the error from inside the function instead of letting jest call the function
     expect(function () {
       sqlForPartialUpdate(
         {},

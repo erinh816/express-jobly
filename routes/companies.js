@@ -54,11 +54,22 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
 router.get("/", async function (req, res) {
 
   const filterCriteria = req.query;
+  console.log('FILTER CRITERIA', filterCriteria)
+  if (filterCriteria.minEmployees !== undefined) {
+    filterCriteria.minEmployees = parseInt(filterCriteria.minEmployees);
+  }
+
+  if (filterCriteria.maxEmployees !== undefined) {
+    filterCriteria.maxEmployees = parseInt(filterCriteria.maxEmployees);
+  }
+
+  //console.log('FILTER CRITERIA', filterCriteria);
 
   const validator = jsonschema.validate(
-    req.query,
+    filterCriteria,
     companiesFilterSchema,
-    { required: false }
+    // required true tells json schema validator to fail if what gets passed in is undefined
+    { required: true }
   );
 
   if (!validator.valid) {
@@ -66,7 +77,7 @@ router.get("/", async function (req, res) {
     throw new BadRequestError(errs);
   }
 
-  if (parseInt(filterCriteria.minEmployees) > parseInt(filterCriteria.maxEmployees)) {
+  if (filterCriteria.minEmployees > filterCriteria.maxEmployees) {
     throw new BadRequestError('minEmployees cannot exceed maxEmployees');
   }
 

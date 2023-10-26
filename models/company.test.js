@@ -60,7 +60,7 @@ describe("create", function () {
 
 describe("findAll", function () {
   test("works: no filter", async function () {
-    let companies = await Company.findAll(null);
+    let companies = await Company.findAll();
     expect(companies).toEqual([
       {
         handle: "c1",
@@ -86,7 +86,7 @@ describe("findAll", function () {
     ]);
   });
 
-  test("works: with filter", async function () {
+  test("works: with single filter", async function () {
 
     let companies = await Company.findAll(
       { minEmployees: '3' }
@@ -101,6 +101,7 @@ describe("findAll", function () {
       }
     ]);
   });
+
 
   test("works: with multiple filters", async function () {
     let companies = await Company.findAll(
@@ -123,13 +124,15 @@ describe("findAll", function () {
     ]);
   });
 
+  
   test("works: handles no matching results", async function () {
     let companies = await Company.findAll(
       { minEmployees: '900' }
     );
-    expect(companies).toEqual("No companies were found matching those filters");
+    expect(companies).toEqual([]);
   });
 });
+// TODO: test the helper function directly
 
 /************************************** get */
 
