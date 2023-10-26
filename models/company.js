@@ -50,6 +50,7 @@ class Company {
     return company;
   }
 
+
   /** Takes in filterCriteria, which can be empty
    * Finds all companies matching filterCriteria,
    * Or all companies if filterCriteria is empty
@@ -57,10 +58,10 @@ class Company {
    * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
    * */
 
-  //TODO:refactor, 66 - 82 move to a helper function, add sql injection stuff
   static async findAll(filterCriteria) {
-    const { whereClause, values } = Company.companySqlFilter();
-    console.log("hahahha", whereClause);
+
+    const { whereClause, values } = Company.companySqlFilter(filterCriteria);
+    //console.log("WHERE", whereClause, 'VALUES', values);
 
     const companiesRes = await db.query(`
     SELECT handle,
@@ -72,11 +73,23 @@ class Company {
     ${whereClause}
     ORDER BY name`, [...values]);
 
+    if (companiesRes.rows.length === 0) {
+      return "No companies were found matching those filters";
+    }
+
     return companiesRes.rows;
   }
 
 
-  //helper here no doc
+  /**
+   * Takes in an object filterCriteria with data from req.query
+   * {'minEmployees': '333', 'nameLike': 'Bauer'}
+   *
+   * Returns an object with a formed WHERE clause for use in SQL db.query
+   * as well as an array of the values separated for SQL injection protection
+   * {whereClause: 'WHERE num_employees > $1 AND name ILIKE $2',
+   *  values: [333, '%Bauer%']}
+   */
   static companySqlFilter(filterCriteria) {
     const criterias = [];
     const values = [];
@@ -85,7 +98,7 @@ class Company {
 
     if (Object.keys(filterCriteria).length > 0) {
       for (const criteria in filterCriteria) {
-        console.log(criteria);
+
         if (criteria === 'minEmployees') {
           criterias.push('num_employees > ' + filterCriteria[criteria]);
           values.push(parseInt(filterCriteria[criteria]));
@@ -100,7 +113,6 @@ class Company {
           criterias.push(`name ILIKE '%${filterCriteria[criteria]}%'`);
           values.push("%" + filterCriteria[criteria] + "%");
           filters.push('name ILIKE ');
-          //name ILIKE %sons%
         }
       }
     }
@@ -114,7 +126,7 @@ class Company {
 
     whereClause = placeholders.length > 0 ? `WHERE ${placeholders.join(' AND ')}` : '';
 
-    return [whereClause, values];
+    return { whereClause, values };
 
   }
 

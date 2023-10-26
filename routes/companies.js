@@ -5,12 +5,13 @@
 const jsonschema = require("jsonschema");
 const express = require("express");
 
-const { BadRequestError, NotFoundError, UnauthorizedError } = require("../expressError");
+const { BadRequestError, NotFoundError} = require("../expressError");
 const { ensureLoggedIn } = require("../middleware/auth");
 const Company = require("../models/company");
 
 const companyNewSchema = require("../schemas/companyNew.json");
 const companyUpdateSchema = require("../schemas/companyUpdate.json");
+const companiesFilterSchema = require("../schemas/companiesFilter.json");
 
 const router = new express.Router();
 
@@ -52,31 +53,27 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
 
 router.get("/", async function (req, res) {
 
-  const filterCriteria = req.query || {};
-  // console.log("check if {} can be passed in", filterCriteria);
+  const filterCriteria = req.query;
 
-  if (Object.keys(filterCriteria).length > 0) {
-    const allowedFilters = ['minEmployees', 'maxEmployees', 'nameLike'];
+  const validator = jsonschema.validate(
+    req.query,
+    companiesFilterSchema,
+    { required: false }
+  );
 
-    for (const filter in filterCriteria) {
-      if (!allowedFilters.includes(filter)) {
-        throw new BadRequestError(
-          `${filter} is not an available filter. Choose from minEmployees, maxEmployees, nameLike`);
-      }
-    }
+  if (!validator.valid) {
+    const errs = validator.errors.map(e => e.stack);
+    throw new BadRequestError(errs);
+  }
 
-    if (filterCriteria.minEmployees > filterCriteria.maxEmployees) {
-      throw new BadRequestError('minEmployees cannot exceed maxEmployees');
-    }
+  if (parseInt(filterCriteria.minEmployees) > parseInt(filterCriteria.maxEmployees)) {
+    throw new BadRequestError('minEmployees cannot exceed maxEmployees');
   }
 
   const companies = await Company.findAll(filterCriteria);
 
-  if (companies.length === 0) {
-    throw new NotFoundError('No companies were found matching those filters');
-  }
-
   return res.json({ companies });
+
 });
 
 /** GET /[handle]  =>  { company }
