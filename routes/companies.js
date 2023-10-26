@@ -5,7 +5,7 @@
 const jsonschema = require("jsonschema");
 const express = require("express");
 
-const { BadRequestError, NotFoundError} = require("../expressError");
+const { BadRequestError, NotFoundError } = require("../expressError");
 const { ensureLoggedIn } = require("../middleware/auth");
 const Company = require("../models/company");
 
@@ -54,7 +54,7 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
 router.get("/", async function (req, res) {
 
   const filterCriteria = req.query;
-  console.log('FILTER CRITERIA', filterCriteria)
+
   if (filterCriteria.minEmployees !== undefined) {
     filterCriteria.minEmployees = parseInt(filterCriteria.minEmployees);
   }
@@ -63,7 +63,6 @@ router.get("/", async function (req, res) {
     filterCriteria.maxEmployees = parseInt(filterCriteria.maxEmployees);
   }
 
-  //console.log('FILTER CRITERIA', filterCriteria);
 
   const validator = jsonschema.validate(
     filterCriteria,

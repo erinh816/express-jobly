@@ -3,6 +3,7 @@
 const db = require("../db.js");
 const { BadRequestError, NotFoundError } = require("../expressError");
 const Company = require("./company.js");
+
 const {
   commonBeforeAll,
   commonBeforeEach,
@@ -105,26 +106,20 @@ describe("findAll", function () {
 
   test("works: with multiple filters", async function () {
     let companies = await Company.findAll(
-      { minEmployees: '1', maxEmployees: '2' }
+      { minEmployees: '1', maxEmployees: '2', nameLike: 'C2' }
     );
-    expect(companies).toEqual([{
-      handle: "c1",
-      name: "C1",
-      description: "Desc1",
-      numEmployees: 1,
-      logoUrl: "http://c1.img",
-    },
-    {
-      handle: "c2",
-      name: "C2",
-      description: "Desc2",
-      numEmployees: 2,
-      logoUrl: "http://c2.img",
-    },
+    expect(companies).toEqual([
+      {
+        handle: "c2",
+        name: "C2",
+        description: "Desc2",
+        numEmployees: 2,
+        logoUrl: "http://c2.img",
+      },
     ]);
   });
 
-  
+
   test("works: handles no matching results", async function () {
     let companies = await Company.findAll(
       { minEmployees: '900' }
@@ -132,7 +127,36 @@ describe("findAll", function () {
     expect(companies).toEqual([]);
   });
 });
-// TODO: test the helper function directly
+
+/************************************** findAll filter helper */
+
+describe("testing _findAllSqlFilter", function () {
+
+  test("valid output given correct input", function () {
+    const result = Company._findAllSqlFilter(
+      { 'minEmployees': 1, 'nameLike': 'C2' },
+    );
+    expect(result).toEqual(
+      {
+        whereClause: 'WHERE num_employees >= $1 AND name ILIKE $2',
+        values: [1, '%C2%']
+      }
+    );
+  });
+
+  test("empty output given empty input", function () {
+    const result = Company._findAllSqlFilter(
+      {},
+    );
+    expect(result).toEqual(
+      {
+        whereClause: '',
+        values: []
+      }
+    );
+  });
+
+});
 
 /************************************** get */
 

@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">97.67% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>42/43</span>
+                <span class='fraction'>47/47</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>8/8</span>
+                <span class='fraction'>12/12</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">97.5% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>39/40</span>
+                <span class='fraction'>44/44</span>
             </div>
         
             
@@ -192,7 +192,18 @@
 <a name='L127'></a><a href='#L127'>127</a>
 <a name='L128'></a><a href='#L128'>128</a>
 <a name='L129'></a><a href='#L129'>129</a>
-<a name='L130'></a><a href='#L130'>130</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L130'></a><a href='#L130'>130</a>
+<a name='L131'></a><a href='#L131'>131</a>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a>
+<a name='L134'></a><a href='#L134'>134</a>
+<a name='L135'></a><a href='#L135'>135</a>
+<a name='L136'></a><a href='#L136'>136</a>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a>
+<a name='L140'></a><a href='#L140'>140</a>
+<a name='L141'></a><a href='#L141'>141</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -250,6 +261,17 @@
 <span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -266,7 +288,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -328,7 +350,7 @@
 const jsonschema = require("jsonschema");
 const express = require("express");
 &nbsp;
-const { BadRequestError, NotFoundError} = require("../expressError");
+const { BadRequestError, NotFoundError } = require("../expressError");
 const { ensureLoggedIn } = require("../middleware/auth");
 const Company = require("../models/company");
 &nbsp;
@@ -377,11 +399,22 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
 router.get("/", async function (req, res) {
 &nbsp;
   const filterCriteria = req.query;
+  // console.log('FILTER CRITERIA', filterCriteria)
+  if (filterCriteria.minEmployees !== undefined) {
+    filterCriteria.minEmployees = parseInt(filterCriteria.minEmployees);
+  }
+&nbsp;
+  if (filterCriteria.maxEmployees !== undefined) {
+    filterCriteria.maxEmployees = parseInt(filterCriteria.maxEmployees);
+  }
+&nbsp;
+  //console.log('FILTER CRITERIA', filterCriteria);
 &nbsp;
   const validator = jsonschema.validate(
-    req.query,
+    filterCriteria,
     companiesFilterSchema,
-    { required: false }
+    // required true tells json schema validator to fail if what gets passed in is undefined
+    { required: true }
   );
 &nbsp;
   if (!validator.valid) {
@@ -389,13 +422,13 @@ router.get("/", async function (req, res) {
     throw new BadRequestError(errs);
   }
 &nbsp;
-  if (parseInt(filterCriteria.minEmployees) &gt; parseInt(filterCriteria.maxEmployees)) {
+  if (filterCriteria.minEmployees &gt; filterCriteria.maxEmployees) {
     throw new BadRequestError('minEmployees cannot exceed maxEmployees');
   }
 &nbsp;
   const companies = await Company.findAll(filterCriteria);
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return res.json({ companies });</span>
+  return res.json({ companies });
 &nbsp;
 });
 &nbsp;
@@ -457,7 +490,7 @@ module.exports = router;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2023-10-26T21:07:25.029Z
+                at 2023-10-26T22:37:38.747Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
