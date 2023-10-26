@@ -59,7 +59,7 @@ class Company {
 
   //TODO:refactor, 66 - 82 move to a helper function, add sql injection stuff
   static async findAll(filterCriteria) {
-    const { whereClause, values } = companySqlFilter(filterCriteria).bind();
+    const { whereClause, values } = Company.companySqlFilter();
     console.log("hahahha", whereClause);
 
     const companiesRes = await db.query(`
@@ -77,7 +77,7 @@ class Company {
 
 
   //helper here no doc
-  companySqlFilter(filterCriteria) {
+  static companySqlFilter(filterCriteria) {
     const criterias = [];
     const values = [];
     const filters = [];
