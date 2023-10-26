@@ -59,29 +59,9 @@ class Company {
 
   //TODO:refactor, 66 - 82 move to a helper function, add sql injection stuff
   static async findAll(filterCriteria) {
+    const { whereClause, values } = companySqlFilter(filterCriteria).bind();
+    console.log("hahahha", whereClause);
 
-    const criterias = [];
-    let whereClause;
-
-    if (Object.keys(filterCriteria).length > 0) {
-      for (const criteria in filterCriteria) {
-        console.log(criteria);
-        if (criteria === 'minEmployees') {
-          criterias.push('num_employees > ' + filterCriteria[criteria]);
-        }
-        else if (criteria === 'maxEmployees') {
-          criterias.push('num_employees < ' + filterCriteria[criteria]);
-        }
-        else if (criteria === 'nameLike') {
-          criterias.push(`name ILIKE '%${filterCriteria[criteria]}%'`);
-        }
-      }
-    }
-
-    // console.log('model criterias array', criterias);
-    whereClause = criterias.length > 0 ? `WHERE ${criterias.join(' AND ')}` : '';
-
-    // console.log('WHERE CLAUSE?', whereClause);
     const companiesRes = await db.query(`
     SELECT handle,
            name,
@@ -90,10 +70,55 @@ class Company {
            logo_url      AS "logoUrl"
     FROM companies
     ${whereClause}
-    ORDER BY name`);
+    ORDER BY name`, [...values]);
 
     return companiesRes.rows;
   }
+
+
+  //helper here no doc
+  companySqlFilter(filterCriteria) {
+    const criterias = [];
+    const values = [];
+    const filters = [];
+    let whereClause;
+
+    if (Object.keys(filterCriteria).length > 0) {
+      for (const criteria in filterCriteria) {
+        console.log(criteria);
+        if (criteria === 'minEmployees') {
+          criterias.push('num_employees > ' + filterCriteria[criteria]);
+          values.push(parseInt(filterCriteria[criteria]));
+          filters.push('num_employees' + ' >');
+        }
+        else if (criteria === 'maxEmployees') {
+          criterias.push('num_employees < ' + filterCriteria[criteria]);
+          values.push(parseInt(filterCriteria[criteria]));
+          filters.push('num_employees' + ' <');
+        }
+        else if (criteria === 'nameLike') {
+          criterias.push(`name ILIKE '%${filterCriteria[criteria]}%'`);
+          values.push("%" + filterCriteria[criteria] + "%");
+          filters.push('name ILIKE ');
+          //name ILIKE %sons%
+        }
+      }
+    }
+    // console.log(values);
+    // console.log('model criterias array', criterias);
+    // whereClause = criterias.length > 0 ? `WHERE ${criterias.join(' AND ')}` : '';
+    const placeholders = filters.map((filter, idx) =>
+      `${filter} $${idx + 1}`,
+    );
+    // console.log('filters,', filterWithPlaceholder);
+
+    whereClause = placeholders.length > 0 ? `WHERE ${placeholders.join(' AND ')}` : '';
+
+    return [whereClause, values];
+
+  }
+
+
 
   /** Given a company handle, return data about company.
    *
