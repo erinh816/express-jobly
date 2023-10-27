@@ -18,19 +18,16 @@ const { UnauthorizedError } = require("../expressError");
 function authenticateJWT(req, res, next) {
   // headers section: authorization : tokentokentoken
   const authHeader = req.headers?.authorization;
-  console.log();
-  console.log('USER=', res.locals.user);
+
   if (authHeader) {
     const token = authHeader.replace(/^[Bb]earer /, "").trim();
 
     try {
       res.locals.user = jwt.verify(token, SECRET_KEY);
-      console.log("in login, res locals user", res.locals.user);
-      // return next();
+
     } catch (err) {
       /* ignore invalid tokens (but don't store user!) */
-      console.log('in login catch');
-      // return next();
+
     }
   }
   return next();
@@ -43,7 +40,7 @@ function authenticateJWT(req, res, next) {
  */
 
 function ensureLoggedIn(req, res, next) {
-  console.log("in ensure login res locals user", res.locals.user);
+
   if (res.locals.user?.username) return next();
   throw new UnauthorizedError();
 }
@@ -54,10 +51,26 @@ function ensureLoggedIn(req, res, next) {
  */
 
 function ensureAdmin(req, res, next) {
-  console.log("in ensure login res locals user equals to admin", res.locals.user);
-  if (res.locals.user.is_admin) {
+
+  if (res.locals.user.isAdmin) {
     return next();
   }
+  throw new UnauthorizedError();
+}
+
+/** Middleware to use when they must be logged in as the correct user.
+ *
+ * If not, raises Unauthorized.
+ */
+
+function ensureSelfOrAdmin(req, res, next) {
+  const currentUsername = res.locals.user.username;
+  const profileUsername = req.params.username;
+
+  if (currentUsername === profileUsername || res.locals.user.isAdmin === true) {
+    return next()
+  }
+
   throw new UnauthorizedError();
 }
 
@@ -66,4 +79,5 @@ module.exports = {
   authenticateJWT,
   ensureLoggedIn,
   ensureAdmin,
+  ensureSelfOrAdmin
 };
