@@ -29,9 +29,9 @@ const router = express.Router();
 
 router.post("/", ensureLoggedIn, async function (req, res, next) {
   const validator = jsonschema.validate(
-      req.body,
-      userNewSchema,
-      { required: true },
+    req.body,
+    userNewSchema,
+    { required: true },
   );
   if (!validator.valid) {
     const errs = validator.errors.map(e => e.stack);
@@ -82,9 +82,9 @@ router.get("/:username", ensureLoggedIn, ensureSelfOrAdmin, async function (req,
 
 router.patch("/:username", ensureLoggedIn, ensureSelfOrAdmin, async function (req, res, next) {
   const validator = jsonschema.validate(
-      req.body,
-      userUpdateSchema,
-      { required: true },
+    req.body,
+    userUpdateSchema,
+    { required: true },
   );
   if (!validator.valid) {
     const errs = validator.errors.map(e => e.stack);
