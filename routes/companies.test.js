@@ -153,7 +153,24 @@ describe("GET /companies", function () {
     });
   });
 
-  // TODO: test all 3 filters together
+
+  test("ok with all 3 filters", async function () {
+    const resp = await request(app)
+      .get("/companies")
+      .query({ minEmployees: 1, maxEmployees: 2, nameLike: '1' });
+
+    expect(resp.body).toEqual({
+      companies:
+        [{
+          handle: "c1",
+          name: "C1",
+          description: "Desc1",
+          numEmployees: 1,
+          logoUrl: "http://c1.img",
+        }
+        ],
+    });
+  });
 
   test("error when min greater than max", async function () {
     const resp = await request(app)
@@ -188,17 +205,19 @@ describe("GET /companies", function () {
     );
   });
 
-  // TODO: pass in all 3 but invalid
-  test("error when filter schema rules not met", async function () {
+
+  test("error when filter schema rules not met, all 3", async function () {
     const resp = await request(app)
       .get("/companies")
-      .query({ maxEmployees: "haha" });
+      .query({ maxEmployees: "haha", minEmployees: "green", nameLike: "xxxxxxxxxxxxxxxxxxxxxx" });
 
     expect(resp.body).toEqual(
       {
         "error": {
           "message": [
-            "instance.maxEmployees is not of a type(s) integer"
+            "instance.minEmployees is not of a type(s) integer",
+            "instance.maxEmployees is not of a type(s) integer",
+            "instance.nameLike does not meet maximum length of 20"
           ],
           "status": 400
         }

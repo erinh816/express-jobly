@@ -178,6 +178,8 @@ describe("GET /users/:username", function () {
       .set("authorization", `Bearer ${adminToken}`);
     expect(resp.statusCode).toEqual(404);
   });
+
+  // TODO: access u1 from u2 fail, update, delete and get
 });
 
 /************************************** PATCH /users/:username */

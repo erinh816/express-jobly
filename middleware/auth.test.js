@@ -86,4 +86,6 @@ describe("ensureAdmin", function () {
       .toThrow(UnauthorizedError);
   });
 
+  // TODO: test if res.local.user isAdmin = false
+
 });

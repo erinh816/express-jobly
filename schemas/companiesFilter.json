@@ -12,7 +12,7 @@
   },
   "nameLike": {
     "type": "string",
-    "maxLength": 70
+    "maxLength": 20
   }
 },
 "additionalProperties": false,

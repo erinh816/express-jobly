@@ -106,8 +106,7 @@ class Company {
           values.push(filterCriteria[criteria]);
           filters.push('num_employees' + ' <= ' + `$${values.length}`);
         }
-
-        else if (criteria === 'nameLike') {
+        else { // WHY DIDNT COVERAGE LIKE THIS?? if (criteria === 'nameLike')
           values.push("%" + filterCriteria[criteria] + "%");
           filters.push('name ILIKE ' + `$${values.length}`);
         }
