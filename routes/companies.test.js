@@ -111,10 +111,9 @@ describe("GET /companies", function () {
   });
 
   test("ok with filter", async function () {
-    // TODO: construct queries like this
     const resp = await request(app)
       .get("/companies")
-      .query({minEmployees: 3});
+      .query({ minEmployees: 3 });
 
     expect(resp.body).toEqual({
       companies:
@@ -130,7 +129,10 @@ describe("GET /companies", function () {
   });
 
   test("ok with multiple filters", async function () {
-    const resp = await request(app).get("/companies?minEmployees=1&maxEmployees=2");
+    const resp = await request(app)
+      .get("/companies")
+      .query({ minEmployees: 1, maxEmployees: 2 });
+
     expect(resp.body).toEqual({
       companies:
         [{
@@ -154,7 +156,10 @@ describe("GET /companies", function () {
   // TODO: test all 3 filters together
 
   test("error when min greater than max", async function () {
-    const resp = await request(app).get("/companies?minEmployees=3&maxEmployees=2");
+    const resp = await request(app)
+      .get("/companies")
+      .query({ minEmployees: 3, maxEmployees: 2 });
+
     expect(resp.body).toEqual(
       {
         "error": {
@@ -167,7 +172,10 @@ describe("GET /companies", function () {
 
 
   test("error when filter criteria invalid", async function () {
-    const resp = await request(app).get("/companies?companyMascot=eagle");
+    const resp = await request(app)
+      .get("/companies")
+      .query({ companyMascot: "eagle" });
+
     expect(resp.body).toEqual(
       {
         "error": {
@@ -182,7 +190,10 @@ describe("GET /companies", function () {
 
   // TODO: pass in all 3 but invalid
   test("error when filter schema rules not met", async function () {
-    const resp = await request(app).get("/companies?maxEmployees=haha");
+    const resp = await request(app)
+      .get("/companies")
+      .query({ maxEmployees: "haha" });
+
     expect(resp.body).toEqual(
       {
         "error": {
